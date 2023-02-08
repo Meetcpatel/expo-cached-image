@@ -8,6 +8,7 @@ import PropTypes from "prop-types"
 import * as CONST from "./consts.js"
 
 const CachedImage = (props) => {
+  console.log("-----props----",props)
   const { source, cacheKey, placeholderContent } = props
   const { uri, headers, expiresIn } = source
   const fileURI = `${CONST.IMAGE_CACHE_FOLDER}${cacheKey}`
