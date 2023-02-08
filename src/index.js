@@ -14,6 +14,7 @@ const CachedImage = (props) => {
   const fileURI = `${CONST.IMAGE_CACHE_FOLDER}${cacheKey}`
 
   const [imgUri, setImgUri] = useState(fileURI)
+  const [cachedImgUri, setCachedImgUri] = useState(undefined);
 
   const componentIsMounted = useRef(true)
   const requestOption = headers ? { headers } : {}
@@ -41,22 +42,24 @@ const CachedImage = (props) => {
       // console.log({metadata})
       if (!metadata.exists || metadata?.size === 0 || expired) {
         if (componentIsMounted.current) {
-          setImgUri(null)
+          setCachedImgUri(undefined)
 
           if (expired) {
             await FileSystem.deleteAsync(fileURI, { idempotent: true })
           }
           // download to cache
-          setImgUri(null)
+          setCachedImgUri(undefined)
 
           const response = await downloadResumableRef.current.downloadAsync()
           if (componentIsMounted.current && response.status === 200) {
-            setImgUri(`${fileURI}?`) // deep clone to force re-render
+            setCachedImgUri(`${fileURI}?`) // deep clone to force re-render
           }
           if (response.status !== 200) {
             FileSystem.deleteAsync(fileURI, { idempotent: true }) // delete file locally if it was not downloaded properly
           }
         }
+      } else {
+        setCachedImgUri(imgUri)
       }
     } catch (err) {
       // console.log({ err })
@@ -70,7 +73,7 @@ const CachedImage = (props) => {
     }
   }
   // console.log({placeholderContent})
-  if (!imgUri) return placeholderContent || null
+  if (!cachedImgUri) return placeholderContent || null
 
   return (
     <Image
@@ -78,7 +81,7 @@ const CachedImage = (props) => {
       {...props}
       source={{
         ...source,
-        uri: imgUri,
+        uri: cachedImgUri,
       }}
     />
   )
